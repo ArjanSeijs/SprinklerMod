@@ -5,6 +5,7 @@ using StardewModdingAPI.Events;
 
 namespace IncreasedSprinklers
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class ModEntry : Mod
     {
         public static ModEntry Instance { get; private set; }

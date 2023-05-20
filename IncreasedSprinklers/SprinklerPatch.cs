@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using StardewModdingAPI;
 using StardewValley;
+// ReSharper disable InconsistentNaming
 
 namespace IncreasedSprinklers
 {
@@ -14,12 +16,18 @@ namespace IncreasedSprinklers
             Monitor = monitor;
         }
 
-        // patches need to be static!
+
+        // patches need to be static!]
         internal static void GetBaseRadiusForSprinkler_Postfix(StardewValley.Object __instance, ref int __result)
         {
             try
             {
-                __result += ModEntry.Instance.Config.RangeIncrease;
+                if (Utility.IsNormalObjectAtParentSheetIndex(__instance, 599) ||
+                    Utility.IsNormalObjectAtParentSheetIndex(__instance, 621) ||
+                    Utility.IsNormalObjectAtParentSheetIndex(__instance, 645))
+                {
+                    __result += ModEntry.Instance.Config.RangeIncrease;
+                }
             }
             catch (Exception ex)
             {
