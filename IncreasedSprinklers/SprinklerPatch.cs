@@ -22,9 +22,7 @@ namespace IncreasedSprinklers
         {
             try
             {
-                if (Utility.IsNormalObjectAtParentSheetIndex(__instance, 599) ||
-                    Utility.IsNormalObjectAtParentSheetIndex(__instance, 621) ||
-                    Utility.IsNormalObjectAtParentSheetIndex(__instance, 645))
+                if (__result >= 0)
                 {
                     __result += ModEntry.Instance.Config.RangeIncrease;
                 }

@@ -13,11 +13,17 @@ namespace IncreasedSprinklers
 
         public override void Entry(IModHelper helper)
         {
-            var harmony = new Harmony(ModManifest.UniqueID);
             Config = Helper.ReadConfig<ModConfig>();
             Instance = this;
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
-            // example patch, you'll need to edit this for your patch
+            SprinklerPatch.Initialize(Monitor);
+
+            ApplyHarmonyPatch();
+        }
+
+        private void ApplyHarmonyPatch()
+        {
+            var harmony = new Harmony(ModManifest.UniqueID);
             harmony.Patch(
                 original: AccessTools.Method(typeof(StardewValley.Object),
                     nameof(StardewValley.Object.GetBaseRadiusForSprinkler)),
@@ -29,10 +35,8 @@ namespace IncreasedSprinklers
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
             // get Generic Mod Config Menu's API (if it's installed)
-            var configMenu =
-                this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
-            if (configMenu is null)
-                return;
+            var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null) return;
 
             // register mod
             configMenu.Register(
