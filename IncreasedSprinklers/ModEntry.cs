@@ -1,7 +1,10 @@
 ﻿using System;
 using HarmonyLib;
+using IncreasedSprinklers.API;
+using IncreasedSprinklers.Patches;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewValley;
 
 namespace IncreasedSprinklers
 {
@@ -16,9 +19,18 @@ namespace IncreasedSprinklers
             Config = Helper.ReadConfig<ModConfig>();
             Instance = this;
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            Helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             SprinklerPatch.Initialize(Monitor);
 
             ApplyHarmonyPatch();
+        }
+
+        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+        {
+            if (Helper.ModRegistry.IsLoaded("jltaylor-us.RangeHighlight"))
+            {
+                RangeHighlightPatch.Apply(this);
+            }
         }
 
         private void ApplyHarmonyPatch()
@@ -26,7 +38,7 @@ namespace IncreasedSprinklers
             var harmony = new Harmony(ModManifest.UniqueID);
             harmony.Patch(
                 original: AccessTools.Method(typeof(StardewValley.Object),
-                    nameof(StardewValley.Object.GetBaseRadiusForSprinkler)),
+                    nameof(StardewValley.Object.GetModifiedRadiusForSprinkler)),
                 postfix: new HarmonyMethod(typeof(SprinklerPatch),
                     nameof(SprinklerPatch.GetBaseRadiusForSprinkler_Postfix))
             );
@@ -53,6 +65,13 @@ namespace IncreasedSprinklers
                 getValue: () => Config.RangeIncrease,
                 setValue: value => Config.RangeIncrease = Math.Max(1, value)
             );
+        }
+
+        public static bool IncreaseRadius(Item instance)
+        {
+            return Utility.IsNormalObjectAtParentSheetIndex(instance, 599) ||
+                   Utility.IsNormalObjectAtParentSheetIndex(instance, 621) ||
+                   Utility.IsNormalObjectAtParentSheetIndex(instance, 645);
         }
     }
 }

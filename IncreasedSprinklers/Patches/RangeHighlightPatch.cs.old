@@ -1,0 +1,48 @@
+﻿using HarmonyLib;
+using RangeHighlight;
+using StardewModdingAPI;
+
+namespace IncreasedSprinklers.Patches
+{
+    public static class RangeHighlightPatch
+    {
+        public static void PatchRangeHighlight()
+        {
+            var instance = ModEntry.Instance;
+            var reflection = instance.Helper.Reflection;
+
+            if (instance.Helper.ModRegistry.Get("jltaylor-us.RangeHighlight") is not { } info) return;
+            if (info.GetType().GetProperty("Mod", AccessTools.all)?.GetValue(info) is not IMod mod) return;
+            if (mod.GetType().GetProperty("theMod", AccessTools.all)?.GetValue(mod) is not RangeHighlight.TheMod theMod)
+                return;
+
+            var defaultShapes = reflection.GetField<object>(theMod, "defaultShapes");
+            var api = reflection.GetField<IRangeHighlightAPI>(defaultShapes, "api").GetValue();
+            var rangeIncrease = instance.Config.RangeIncrease;
+
+            if (rangeIncrease >= 0)
+                SetValue(reflection, defaultShapes, "sprinkler", api.GetSquareCircle((uint)rangeIncrease));
+
+            SetValue(reflection, defaultShapes, "qualitySprinkler", api.GetSquareCircle((uint)(1 + rangeIncrease)));
+            SetValue(reflection, defaultShapes, "iridiumSprinkler", api.GetSquareCircle((uint)(2 + rangeIncrease)));
+            SetValue(reflection, defaultShapes, "iridiumSprinklerWithNozzle",
+                api.GetSquareCircle((uint)(3 + rangeIncrease)));
+            SetValue(reflection, defaultShapes, "prismaticSprinkler", api.GetSquareCircle((uint)(3 + rangeIncrease)));
+            SetValue(reflection, defaultShapes, "radioactiveSprinkler", api.GetSquareCircle((uint)(3 + rangeIncrease)));
+            // if (rangeIncrease >= 0)
+            //     theMod.defaultShapes.sprinkler = api.GetSquareCircle((uint)rangeIncrease);
+            //
+            // theMod.defaultShapes.qualitySprinkler = api.GetSquareCircle((uint)(1 + rangeIncrease));
+            // theMod.defaultShapes.iridiumSprinkler = api.GetSquareCircle((uint)(2 + rangeIncrease));
+            // theMod.defaultShapes.iridiumSprinklerWithNozzle = api.GetSquareCircle((uint)(3 + rangeIncrease));
+            // theMod.defaultShapes.prismaticSprinkler = api.GetSquareCircle((uint)(3 + rangeIncrease));
+            // theMod.defaultShapes.radioactiveSprinkler = api.GetSquareCircle((uint)(3 + rangeIncrease));
+        }
+
+        private static void SetValue(IReflectionHelper reflection, IReflectedField<object> defaultShapes,
+            string sprinkler, bool[,] value)
+        {
+            reflection.GetField<bool[,]>(defaultShapes, sprinkler).SetValue(value);
+        }
+    }
+}
