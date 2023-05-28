@@ -1,42 +1,58 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
 using RangeHighlight;
-using StardewModdingAPI.Utilities;
-using StardewValley;
-using Object = StardewValley.Object;
+using StardewModdingAPI;
+
+// using Object = StardewValley.Object;
 
 namespace IncreasedSprinklers.Patches
 {
     public static class RangeHighlightPatch
     {
-        public static void Apply(ModEntry modEntry)
+
+        public static IMonitor Monitor { get; set; }
+        public static ModEntry ModEntry { get; set; }
+        // call this method from your Entry class
+        internal static void Initialize(IMonitor monitor, ModEntry modEntry)
         {
-            var api = modEntry.Helper.ModRegistry.GetApi<IRangeHighlightAPI>("jltaylor-us.RangeHighlight");
-            if (api is null) return;
+            Monitor = monitor;
+            ModEntry = modEntry;
+        }
 
-            Tuple<Color, bool[,]> Highlighter(Item item, int id, string name)
+        internal static bool GetSprinkler_Prefix(string name, bool hasPressureNozzleAttached, ref bool[,] __result)
+        {
+            try
             {
-                modEntry.Monitor.Log($"Name is: {name}");
-
-                if (item is not Object obj) return null;
-
-                modEntry.Monitor.Log($"Increases radius {name}: {ModEntry.IncreaseRadius(item)}");
-
-                if (!ModEntry.IncreaseRadius(item)) return null;
-
-                var sprinklerRangeTint = api.GetSprinklerRangeTint();
-                var modifiedRadiusForSprinkler = obj.GetModifiedRadiusForSprinkler();
-                if (modifiedRadiusForSprinkler < 0) return null;
+                var api = ModEntry.Helper.ModRegistry.GetApi<IRangeHighlightAPI>("jltaylor-us.RangeHighlight");
+                if (api is null) return true;
                 
-                var squareCircle = api.GetSquareCircle((uint)modifiedRadiusForSprinkler);
-                return new Tuple<Color, bool[,]>(sprinklerRangeTint, squareCircle);
-            }
+                // The values with increased range
+                var sprinkler = api.GetSquareCircle((uint)(0 + ModEntry.Config.RangeIncrease));
+                var qualitySprinkler = api.GetSquareCircle((uint)(1 + ModEntry.Config.RangeIncrease));
+                var iridiumSprinkler = api.GetSquareCircle((uint)(2 + ModEntry.Config.RangeIncrease));
+                var iridiumSprinklerWithNozzle = api.GetSquareCircle((uint)(3 + ModEntry.Config.RangeIncrease));
+                var prismaticSprinkler = api.GetSquareCircle((uint)(3 + ModEntry.Config.RangeIncrease));
+                var radioactiveSprinkler = api.GetSquareCircle((uint)(3 + ModEntry.Config.RangeIncrease));
 
-            api.AddItemRangeHighlighter("eternalsoap.sprinkler",
-                () => true,
-                () => new KeybindList(),
-                () => true,
-                Highlighter);
+                // The original method
+                bool[,] GetSprinkler()
+                {
+                    if (name.Contains("iridium"))
+                        return hasPressureNozzleAttached ? iridiumSprinklerWithNozzle : iridiumSprinkler;
+                    if (name.Contains("quality"))
+                        return hasPressureNozzleAttached ? iridiumSprinkler : qualitySprinkler;
+                    if (name.Contains("prismatic")) return prismaticSprinkler;
+                    if (name.Contains("radioactive")) return radioactiveSprinkler;
+                    return hasPressureNozzleAttached ? qualitySprinkler : sprinkler;
+                }
+
+                __result = GetSprinkler();
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(GetSprinkler_Prefix)}:\n{ex}", LogLevel.Error);
+                return true;
+            }
         }
     }
 }

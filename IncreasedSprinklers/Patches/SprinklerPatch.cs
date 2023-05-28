@@ -1,6 +1,5 @@
 ﻿using System;
 using StardewModdingAPI;
-using StardewValley;
 
 // ReSharper disable InconsistentNaming
 
@@ -16,8 +15,7 @@ namespace IncreasedSprinklers.Patches
             Monitor = monitor;
         }
         
-        // patches need to be static!]
-        internal static void GetBaseRadiusForSprinkler_Postfix(StardewValley.Object __instance, ref int __result)
+        internal static void GetModifiedRadiusForSprinkler_Postfix(StardewValley.Object __instance, ref int __result)
         {
             try
             {
@@ -28,7 +26,7 @@ namespace IncreasedSprinklers.Patches
             }
             catch (Exception ex)
             {
-                Monitor.Log($"Failed in {nameof(GetBaseRadiusForSprinkler_Postfix)}:\n{ex}", LogLevel.Error);
+                Monitor.Log($"Failed in {nameof(GetModifiedRadiusForSprinkler_Postfix)}:\n{ex}", LogLevel.Error);
             }
         }
     }
