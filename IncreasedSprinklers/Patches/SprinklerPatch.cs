@@ -19,7 +19,7 @@ namespace IncreasedSprinklers.Patches
         {
             try
             {
-                if (ModEntry.IncreaseRadius(__instance) || __result >= 0)
+                if (ModEntry.Instance.IncreaseRadius(__instance) || __result >= 0)
                 {
                     __result += ModEntry.Instance.Config.RangeIncrease;
                 }

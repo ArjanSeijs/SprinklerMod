@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using IncreasedSprinklers.API;
 using IncreasedSprinklers.Patches;
@@ -14,12 +16,19 @@ namespace IncreasedSprinklers
         public static ModEntry Instance { get; private set; }
         public ModConfig Config { get; private set; }
 
+        public List<Func<Item, bool>> sprinklers = new List<Func<Item, bool>>();
+
         public override void Entry(IModHelper helper)
         {
             Config = Helper.ReadConfig<ModConfig>();
             Instance = this;
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             HarmonyPatch();
+        }
+
+        public override object GetApi()
+        {
+            return new SprinklerRangeApi();
         }
 
         /// <summary>
@@ -42,8 +51,10 @@ namespace IncreasedSprinklers
         private void ApplyBaseGamePatch(Harmony harmony)
         {
             harmony.Patch(
-                original: AccessTools.Method(typeof(StardewValley.Object), nameof(StardewValley.Object.GetModifiedRadiusForSprinkler)),
-                postfix: new HarmonyMethod(typeof(SprinklerPatch), nameof(SprinklerPatch.GetModifiedRadiusForSprinkler_Postfix))
+                original: AccessTools.Method(typeof(StardewValley.Object),
+                    nameof(StardewValley.Object.GetModifiedRadiusForSprinkler)),
+                postfix: new HarmonyMethod(typeof(SprinklerPatch),
+                    nameof(SprinklerPatch.GetModifiedRadiusForSprinkler_Postfix))
             );
         }
 
@@ -95,11 +106,12 @@ namespace IncreasedSprinklers
         /// </summary>
         /// <param name="instance"></param>
         /// <returns></returns>
-        public static bool IncreaseRadius(Item instance)
+        public bool IncreaseRadius(Item instance)
         {
             return Utility.IsNormalObjectAtParentSheetIndex(instance, 599) ||
                    Utility.IsNormalObjectAtParentSheetIndex(instance, 621) ||
-                   Utility.IsNormalObjectAtParentSheetIndex(instance, 645);
+                   Utility.IsNormalObjectAtParentSheetIndex(instance, 645) ||
+                   sprinklers.Any(check => check(instance));
         }
     }
 }
