@@ -5,12 +5,6 @@
   "Description": "Increases the sprinkler range",
   "UniqueID": "eternalsoap.sprinklers",
   "EntryDll": "IncreasedSprinklers.dll",
-  "MinimumApiVersion": "3.0.0",
-  "UpdateKeys": [],
-  "Dependencies": [
-    {
-      "UniqueID": "jltaylor-us.RangeHighlight",
-      "IsRequired": false
-    }
-  ]
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": []
 }

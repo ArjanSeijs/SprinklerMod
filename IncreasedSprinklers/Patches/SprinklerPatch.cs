@@ -19,9 +19,9 @@ namespace IncreasedSprinklers.Patches
         {
             try
             {
-                if (ModEntry.Instance.IncreaseRadius(__instance) || __result >= 0)
+                if (__result >= 0)
                 {
-                    __result += ModEntry.Instance.Config.RangeIncrease;
+                    __result = Math.Clamp(__result + ModEntry.Instance.Config.RangeIncrease, 0, 256);
                 }
             }
             catch (Exception ex)

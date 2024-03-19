@@ -16,19 +16,13 @@ namespace IncreasedSprinklers
         public static ModEntry Instance { get; private set; }
         public ModConfig Config { get; private set; }
 
-        public List<Func<Item, bool>> sprinklers = new List<Func<Item, bool>>();
-
         public override void Entry(IModHelper helper)
         {
             Config = Helper.ReadConfig<ModConfig>();
             Instance = this;
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            Config.RangeIncrease = Math.Clamp(Config.RangeIncrease, -256, 256);
             HarmonyPatch();
-        }
-
-        public override object GetApi()
-        {
-            return new SprinklerRangeApi();
         }
 
         /// <summary>
@@ -38,10 +32,8 @@ namespace IncreasedSprinklers
         {
             var harmony = new Harmony(ModManifest.UniqueID);
             SprinklerPatch.Initialize(Monitor);
-            RangeHighlightPatch.Initialize(Monitor, this);
 
             ApplyBaseGamePatch(harmony);
-            ApplyHighlightPatch(harmony);
         }
 
         /// <summary>
@@ -55,22 +47,6 @@ namespace IncreasedSprinklers
                     nameof(StardewValley.Object.GetModifiedRadiusForSprinkler)),
                 postfix: new HarmonyMethod(typeof(SprinklerPatch),
                     nameof(SprinklerPatch.GetModifiedRadiusForSprinkler_Postfix))
-            );
-        }
-
-        /// <summary>
-        /// If installed patch RangeHighlight getSprinkler method
-        /// </summary>
-        /// <param name="harmony"></param>
-        private void ApplyHighlightPatch(Harmony harmony)
-        {
-            if (!Helper.ModRegistry.IsLoaded("jltaylor-us.RangeHighlight")) return;
-
-            // RangeHighlight.TheMod.DefaultShapes
-            var type = AccessTools.TypeByName("DefaultShapes");
-            harmony.Patch(
-                original: AccessTools.Method(type, "GetSprinkler"),
-                prefix: new HarmonyMethod(typeof(RangeHighlightPatch), nameof(RangeHighlightPatch.GetSprinkler_Prefix))
             );
         }
 
@@ -98,20 +74,8 @@ namespace IncreasedSprinklers
                 name: () => "Range",
                 tooltip: () => "The Sprinkler Range Increase",
                 getValue: () => Config.RangeIncrease,
-                setValue: value => { Config.RangeIncrease = Math.Max(1, value); });
+                setValue: value => { Config.RangeIncrease = Math.Clamp(value,-256, 256); });
         }
 
-        /// <summary>
-        /// Returns if a item should have its modified radius increased. (Currently all vanilla sprinklers)
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <returns></returns>
-        public bool IncreaseRadius(Item instance)
-        {
-            return Utility.IsNormalObjectAtParentSheetIndex(instance, 599) ||
-                   Utility.IsNormalObjectAtParentSheetIndex(instance, 621) ||
-                   Utility.IsNormalObjectAtParentSheetIndex(instance, 645) ||
-                   sprinklers.Any(check => check(instance));
-        }
     }
 }
