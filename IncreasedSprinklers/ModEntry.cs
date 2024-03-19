@@ -16,19 +16,13 @@ namespace IncreasedSprinklers
         public static ModEntry Instance { get; private set; }
         public ModConfig Config { get; private set; }
 
-        public List<Func<Item, bool>> sprinklers = new List<Func<Item, bool>>();
-
         public override void Entry(IModHelper helper)
         {
             Config = Helper.ReadConfig<ModConfig>();
             Instance = this;
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            Config.RangeIncrease = Math.Clamp(Config.RangeIncrease, -256, 256);
             HarmonyPatch();
-        }
-
-        public override object GetApi()
-        {
-            return new SprinklerRangeApi();
         }
 
         /// <summary>
@@ -80,20 +74,8 @@ namespace IncreasedSprinklers
                 name: () => "Range",
                 tooltip: () => "The Sprinkler Range Increase",
                 getValue: () => Config.RangeIncrease,
-                setValue: value => { Config.RangeIncrease = Math.Max(1, value); });
+                setValue: value => { Config.RangeIncrease = Math.Clamp(value,-256, 256); });
         }
 
-        /// <summary>
-        /// Returns if a item should have its modified radius increased. (Currently all vanilla sprinklers)
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <returns></returns>
-        public bool IncreaseRadius(Item instance)
-        {
-            return instance.QualifiedItemId == "(O)599" ||
-                   instance.QualifiedItemId == "(O)621" ||
-                   instance.QualifiedItemId == "(O)645" ||
-                   sprinklers.Any(check => check(instance));
-        }
     }
 }
