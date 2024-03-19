@@ -38,10 +38,8 @@ namespace IncreasedSprinklers
         {
             var harmony = new Harmony(ModManifest.UniqueID);
             SprinklerPatch.Initialize(Monitor);
-            RangeHighlightPatch.Initialize(Monitor, this);
 
             ApplyBaseGamePatch(harmony);
-            ApplyHighlightPatch(harmony);
         }
 
         /// <summary>
@@ -55,22 +53,6 @@ namespace IncreasedSprinklers
                     nameof(StardewValley.Object.GetModifiedRadiusForSprinkler)),
                 postfix: new HarmonyMethod(typeof(SprinklerPatch),
                     nameof(SprinklerPatch.GetModifiedRadiusForSprinkler_Postfix))
-            );
-        }
-
-        /// <summary>
-        /// If installed patch RangeHighlight getSprinkler method
-        /// </summary>
-        /// <param name="harmony"></param>
-        private void ApplyHighlightPatch(Harmony harmony)
-        {
-            if (!Helper.ModRegistry.IsLoaded("jltaylor-us.RangeHighlight")) return;
-
-            // RangeHighlight.TheMod.DefaultShapes
-            var type = AccessTools.TypeByName("DefaultShapes");
-            harmony.Patch(
-                original: AccessTools.Method(type, "GetSprinkler"),
-                prefix: new HarmonyMethod(typeof(RangeHighlightPatch), nameof(RangeHighlightPatch.GetSprinkler_Prefix))
             );
         }
 
@@ -108,9 +90,9 @@ namespace IncreasedSprinklers
         /// <returns></returns>
         public bool IncreaseRadius(Item instance)
         {
-            return Utility.IsNormalObjectAtParentSheetIndex(instance, 599) ||
-                   Utility.IsNormalObjectAtParentSheetIndex(instance, 621) ||
-                   Utility.IsNormalObjectAtParentSheetIndex(instance, 645) ||
+            return instance.QualifiedItemId == "(O)599" ||
+                   instance.QualifiedItemId == "(O)621" ||
+                   instance.QualifiedItemId == "(O)645" ||
                    sprinklers.Any(check => check(instance));
         }
     }
